@@ -1,0 +1,18 @@
+# 環境
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+
+# 生成物・大きいもの（リポジトリに入れない）
+data/
+runs/
+logs/
+tools/oxi/
+tools/oxi-target/
+tools/oxi-wasm/
+
+# ライセンスの都合で入れないもの
+fonts/
+third_party/
+notes/

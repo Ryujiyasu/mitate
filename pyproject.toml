@@ -1,0 +1,19 @@
+[project]
+name = "oxi-mitate"
+version = "0.1.0"
+description = "oxi-mitate（見立て）: 帳票の手書きを読む、軽い日本語OCR。Oxi の様式（.docx）から読んで、元の様式に戻す"
+license = "MIT OR Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch",
+    "numpy",
+    "pillow",
+    "fonttools",
+    "opencv-python-headless",
+    "tqdm",
+    "pypdfium2>=5.15.2",
+    "python-docx>=1.2.0",
+]
+
+[tool.uv]
+package = false
