@@ -41,9 +41,35 @@ mitate/fieldeval.py, formtest.py, humantest.py, boundary.py   評価
 tools/formfill.mjs   Oxi（wasm）で欄の位置・空欄の様式・差し込み
 ```
 
-## 必要なもの（リポジトリに入っていないもの）
+## すぐ試す
 
-- **学習済みモデル**: まだ配布していない。`python -m mitate.train` で作る（GPU 1 枚で数時間）
+```bash
+uv sync
+python -m mitate.lexicon download        # 郵便番号データ（住所の語彙。なくても動く）
+python -m mitate.formread read 様式.docx 写真.jpg --out out/
+```
+
+```python
+from mitate.infer import Reader
+reader = Reader()                            # 学習済みモデル（初回だけ取得、~/.cache/mitate）
+reader.read([行の画像])                      # 横書き
+reader.read([行の画像], vertical=True)       # 縦書き
+```
+
+## 学習済みモデル
+
+| | |
+|---|---|
+| ファイル | `mitate-v0.1.pt`（GitHub Releases の v0.1.0、25MB、重みだけ・`torch.load(weights_only=True)` で読める） |
+| 中身 | CRNN（CNN + BiLSTM + CTC）、6.3M パラメータ、横の細かさ 2px、文字集合 cp932（7,326 字） |
+| 読めるもの | 活字と手書きの 1 行（横書き・縦書き）。帳票の記入欄（氏名・住所・日付・金額・電話番号・郵便番号など）向け |
+| 学習データ | すべて合成。活字フォント（OFL / IPA）と、KanjiVG の筆画から作った架空の書き手の手書きフォント、Oxi で描いた帳票 |
+| 能力 | 下の「読める / ぎりぎり / 読めない」と「欄の知識の使い方」の表（学習に使っていない書体・書き手で測ったもの） |
+| 注意 | 本物の手書きでは確かめていない（合成の手書きだけで学習・評価している） |
+| ライセンス | MIT または Apache-2.0（コードと同じ） |
+
+## 必要なもの（学習するとき・リポジトリに入っていないもの）
+
 - **手書きフォント**: `python -m mitate.hwfont` で KanjiVG から生成する（KanjiVG は https://github.com/KanjiVG/kanjivg から取得し `third_party/` に置く）
 - **活字フォント**: BIZ UD・IPA・Noto Sans JP・Zen・M PLUS など（OFL / IPA フォントライセンス）。`~/.local/share/fonts/` に置く
 - **Oxi**: CLI（`oxi docx-to-pdf`、`tools/oxi/oxi`）と wasm（`docx_field_boxes` を含む版、`tools/oxi-wasm/`）

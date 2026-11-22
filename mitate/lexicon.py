@@ -49,6 +49,10 @@ def municipalities() -> tuple[tuple[str, ...], dict[str, set[str]]]:
     """(都道府県 47, 都道府県 → その中の市区町村名・郡名・それらの語幹)。"""
     by_pref: dict[str, set[str]] = defaultdict(set)
     prefs: list[str] = []
+    if not KEN_ALL.exists():
+        import sys
+        print(f"郵便番号データがないので、住所の語彙を使いません（python -m mitate.lexicon download で取得）", file=sys.stderr)
+        return (), {}
     with KEN_ALL.open(encoding="cp932", newline="") as f:
         for row in csv.reader(f):
             pref, city = row[6], row[7]
@@ -141,6 +145,8 @@ def coverage(text: str, kind: str) -> int:
 def address_issues(text: str) -> list[str]:
     """都道府県と市区町村の組み合わせが実在しないとき（記入ミスか、読み間違いか）。直さずに印だけ付ける。"""
     prefs, by_pref = municipalities()
+    if not prefs:  # 郵便番号データがない
+        return []
     t = text.replace(" ", "")
     pref = next((p for p in prefs if t.startswith(p)), None)
     if not pref:
@@ -151,3 +157,27 @@ def address_issues(text: str) -> list[str]:
         others = [p for p in prefs if p != pref and any(rest.startswith(u) for u in by_pref[p] if u[-1] in "市区町村郡")]
         return [f"{pref}に、この市区町村はない" + (f"（{others[0]}にはある）" if others else "")]
     return []
+
+
+KEN_ALL_URL = "https://www.post.japanpost.jp/zipcode/dl/kogaki/zip/ken_all.zip"
+
+
+def download():
+    """日本郵便の郵便番号データ（読み仮名データの促音・拗音を小書きで表記しないもの）を取得する。"""
+    import io
+    import urllib.request
+    import zipfile
+    KEN_ALL.parent.mkdir(parents=True, exist_ok=True)
+    with urllib.request.urlopen(KEN_ALL_URL) as r:
+        z = zipfile.ZipFile(io.BytesIO(r.read()))
+    name = next(n for n in z.namelist() if n.upper().endswith("KEN_ALL.CSV"))
+    KEN_ALL.write_bytes(z.read(name))
+    print(f"{KEN_ALL}（{KEN_ALL.stat().st_size // 1024} KB）")
+
+
+if __name__ == "__main__":
+    import sys
+    if sys.argv[1:] == ["download"]:
+        download()
+    else:
+        print("usage: python -m mitate.lexicon download")

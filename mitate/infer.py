@@ -30,9 +30,16 @@ class Reading:
 
 
 class Reader:
-    def __init__(self, ckpt: str | Path, device: str | None = None):
+    def __init__(self, ckpt: str | Path | None = None, device: str | None = None):
+        """ckpt を省くと、配布している既定のモデル（mitate.weights）を使う。"""
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        ck = torch.load(ckpt, map_location=self.device)
+        if ckpt is None:
+            from .weights import fetch
+            ckpt = fetch()
+        try:
+            ck = torch.load(ckpt, map_location=self.device, weights_only=True)
+        except Exception:  # 学習中のチェックポイント（最適化の状態つき）
+            ck = torch.load(ckpt, map_location=self.device, weights_only=False)
         self.model = CRNN(ck["classes"], ck.get("scale", 1.0), stride=ck.get("stride", 4)).to(self.device).eval()
         self.name = Path(ckpt).parent.name
         self.model.load_state_dict(ck["model"])

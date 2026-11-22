@@ -427,7 +427,10 @@ def overlay(page: np.ndarray, tpl: Template, result: dict) -> np.ndarray:
     col = {"yellow": (240, 200, 0), "cyan": (0, 170, 220), "magenta": (220, 0, 160)}
     im = Image.fromarray(page).convert("RGB")
     d = ImageDraw.Draw(im)
-    font = ImageFont.truetype(LABEL_FONT, 26)
+    try:
+        font = ImageFont.truetype(LABEL_FONT, 26)
+    except OSError:  # 見本用の書体がない環境
+        font = ImageFont.load_default(size=26)
     for f in tpl.fields:
         r = result["fields"].get(f.base, {})
         c = col.get(HIGHLIGHT.get(r.get("source", "").split("/")[0], ""), (0, 150, 0))
@@ -436,7 +439,7 @@ def overlay(page: np.ndarray, tpl: Template, result: dict) -> np.ndarray:
     return np.asarray(im)
 
 
-def test(docx: Path, n: int, out: Path, ckpt: str, seed: int = 7):
+def test(docx: Path, n: int, out: Path, ckpt: str | None, seed: int = 7):
     from . import render
     from .infer import Reader
     out.mkdir(parents=True, exist_ok=True)
@@ -490,7 +493,7 @@ def main():
     r.add_argument("--choices", default=None, help='選択式の欄（JSON）: {"申請区分": ["新規", "継続", "変更"]}')
     t = sub.add_parser("test"); t.add_argument("docx"); t.add_argument("--n", type=int, default=20); t.add_argument("--out", default="runs/formread")
     for p in (r, t):
-        p.add_argument("--ckpt", default="runs/s2cam/last.pt")
+        p.add_argument("--ckpt", default=None, help="省くと配布している既定のモデル")
     a = ap.parse_args()
     if a.cmd == "test":
         test(Path(a.docx), a.n, Path(a.out), a.ckpt)
