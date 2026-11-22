@@ -295,7 +295,7 @@ python -m mitate.train --profile form --scale 0.5 --out runs/form_s0.5
 `docs/readability/` の見本画像の手書きの字は、KanjiVG（© Ulrich Apel、CC BY-SA 3.0、https://kanjivg.tagaini.net/）の
 筆画データから生成した字形を含むため、これらの画像は CC BY-SA 3.0 で提供する。
 
-### 使っているデータの扱い（弁護士の確認ではありません）
+### 使っているデータの扱い
 
 - KanjiVG: CC BY-SA 3.0。生成した手書きフォントは学習専用とし、配布しない（配布すると SA 条件がかかる）
 - 活字フォント: OFL / IPA フォントライセンス。学習用の描画に使う
